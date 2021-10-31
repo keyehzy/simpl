@@ -55,6 +55,8 @@ Node *parse_head(lexer *lex) {
   case tk_minus:
   case tk_times:
   case tk_div:
+  case tk_anonymous_identifier_pattern:
+  case tk_anonymous_operator_pattern:
   default:
     UNREACHABLE();
   }
@@ -74,6 +76,8 @@ operation lookup_operation(token t) {
   case tk_identifier:
   case tk_number_literal:
   case tk_eof:
+  case tk_anonymous_identifier_pattern:
+  case tk_anonymous_operator_pattern:
   default:
     UNREACHABLE();
   }
@@ -104,6 +108,8 @@ Node *parse_rest(lexer *lex, Node *head, precedence prec) {
     case tk_identifier:
     case tk_number_literal:
     case tk_eof:
+    case tk_anonymous_identifier_pattern:
+    case tk_anonymous_operator_pattern:
     default:
       return head;
     }

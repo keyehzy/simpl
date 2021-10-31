@@ -2,6 +2,7 @@
 #include "assert.h"
 
 #include <stddef.h>
+#include <string.h>
 
 stream s_new(const char* buffer) {
   return (stream) {.buffer = buffer};
@@ -28,23 +29,22 @@ void skip_ws(stream *s) {
   s->buffer = it;
 }
 
-token parse_number(stream *s) {
-  const char* begin = s_peek(s);
-  const char* end = NULL;
+const char* eat_number(const char* begin) {
   const char* it = begin + 1;
-
   while(1) {
     switch(it[0]) {
-    CASE_NUMBERS
-      it++;
-      break;
+      CASE_NUMBERS
+	it++;
+        break;
     default:
-      goto finish;
+      return it;
     }     
   }
+}
 
- finish:
-  end = it;
+token parse_number(stream *s) {
+  const char* begin = s_peek(s);
+  const char* end = eat_number(begin);
   s->buffer = end;
   location loc = (location) {.begin = begin, .end = end};
   return (token) {.type = tk_number_literal, .loc = loc};  
@@ -60,6 +60,8 @@ token_type get_operator_type(int o) {
     return tk_times;
   case '/':
     return tk_div;
+  case '@':
+    return tk_anonymous_operator_pattern;
   default:
     UNREACHABLE();
   }
@@ -74,27 +76,38 @@ token parse_operator(stream *s) {
   return (token) {.type = type, .loc = loc};  
 }
 
-token parse_identifier(stream *s) {
-  const char* begin = s_peek(s);
-  const char* end = NULL;
-  const char* it = begin + 1;
-
+const char* eat_word(const char* begin) {
+  const char* it = begin;
   while(1) {
     switch(it[0]) {
       CASE_NUMBERS
       CASE_CHARACTERS
 	it++;
-      break;
+        break;
     default:
-      goto finish;
+      return it;
     }
   }
+}
 
- finish:
-  end = it;
+token parse_identifier(stream *s) {
+  const char* begin = s_peek(s);
+  const char* end = eat_word(begin);
   s->buffer = end;
   location loc = (location) {.begin = begin, .end = end};
   return (token) {.type = tk_identifier, .loc = loc};  
+}
+
+token parse_anonymous_identifier_pattern(stream *s) {
+  const char* begin = s_peek(s);
+  const char* end = eat_word(begin + 1);
+  s->buffer = end;
+  location loc = (location) {.begin = begin, .end = end};
+  return (token) {.type = tk_anonymous_identifier_pattern, .loc = loc};
+}
+
+token parse_anonymous_operator_pattern(stream *s) {
+  return parse_operator(s);
 }
 
 token next_token(stream *s) {
@@ -106,6 +119,10 @@ token next_token(stream *s) {
     return parse_operator(s);
   CASE_CHARACTERS
     return parse_identifier(s);
+  case '#':
+    return parse_anonymous_identifier_pattern(s);
+  case '@':
+    return parse_anonymous_operator_pattern(s);
   case '\0':
     return (token) {.type = tk_eof, .loc = {0}};
   default:

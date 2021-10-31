@@ -51,6 +51,22 @@ MU_TEST(test_lexer) {
   }
 
   {
+    const char* foo = "#Something";
+    stream s = s_new(foo);
+    token t = next_token(&s);
+    mu_assert_int_eq(t.type, tk_anonymous_identifier_pattern);
+    mu_check(s_is_eof(&s));
+  }
+
+  {
+    const char* foo = "#";
+    stream s = s_new(foo);
+    token t = next_token(&s);
+    mu_assert_int_eq(t.type, tk_anonymous_identifier_pattern);
+    mu_check(s_is_eof(&s));
+  }
+
+  {
     const char* foo[] = {"+", "-", "*", "/"};
     const token_type tk_types[] = {tk_plus, tk_minus, tk_times, tk_div};
     for(int i = 0; i < 4; i++) {
