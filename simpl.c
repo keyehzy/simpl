@@ -2,12 +2,15 @@
 
 #include <stdlib.h>
 
-Node *new_operand(location loc) {
+Node *new_operand(location loc, operand_kind kind) {
+  OperandNode operand = {0};
+  operand.kind = kind;
+
   Node *node = (Node*) malloc(sizeof(Node));
   *node = (Node) {0};
   node->loc = loc;
   node->kind = Operand;
-  node->operand = (OperandNode) {0};  
+  node->operand = operand;
   return node;
 }
 
@@ -36,11 +39,15 @@ Node *new_invalid() {
 Node *parse_head(lexer *lex) {
   token next_token = l_peek(lex);
   switch(next_token.type) {
-  case tk_identifier:
+  case tk_identifier: {
+    location operand_location = next_token.loc;
+    l_skip(lex);
+    return new_operand(operand_location, operand_variable_identifier);
+  }
   case tk_number_literal: {
     location operand_location = next_token.loc;
     l_skip(lex);
-    return new_operand(operand_location);
+    return new_operand(operand_location, operand_number_literal);
   }
   case tk_eof:
     return new_invalid();
@@ -73,7 +80,7 @@ operation lookup_operation(token t) {
   return (operation) {0};    
 }
 
-Node *parse_rest(lexer *lex, Node *head) {
+Node *parse_rest(lexer *lex, Node *head, precedence prec) {
 
   while(1) {
     token next_token = l_peek(lex);
@@ -82,22 +89,16 @@ Node *parse_rest(lexer *lex, Node *head) {
     case tk_minus:
     case tk_times:
     case tk_div: {
-      location loc = next_token.loc;
       operation o = lookup_operation(next_token);
-      operation head_op = {0};
 
-      if(head->kind == Operator) {
-	head_op = head->operator.operation;
-      }
-      
-      if(head_op.prec > o.prec ||
-	 (head_op.prec == o.prec && o.assoc == assoc_right))
-	return head;
+    if(prec > o.prec ||
+	   (prec == o.prec && o.assoc == assoc_right))
+	  return head;
 
       l_skip(lex);
-      Node *rest = parse_head(lex);
+      Node *rest = parse1(lex, o.prec);
       ASSERT(rest->kind != Invalid);
-      head = new_operator(loc, o, head, rest);
+      head = new_operator(new_loc(head->loc.begin, rest->loc.end), o, head, rest);
       break;
     }
     case tk_identifier:
@@ -109,7 +110,12 @@ Node *parse_rest(lexer *lex, Node *head) {
   }
 }
 
+Node *parse1(lexer *lex, precedence prec) {
+    Node *head = parse_head(lex);
+    return parse_rest(lex, head, prec);
+}
+
 Node *parse(lexer *lex) {
   Node *head = parse_head(lex);
-  return parse_rest(lex, head);
+  return parse_rest(lex, head, (precedence) {0});
 }

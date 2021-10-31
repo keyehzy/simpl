@@ -11,7 +11,7 @@ CFLAGS = -O0 -g -std=c99 -Werror -Wall -Wextra
 # -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fstack-clash-protection -fPIE \
 # -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-z,separate-code
 
-TDD_SRC = tdd/tdd.h
+TDD_SRC = minunit.h #tdd/tdd.h
 SRC = simpl.c simpl.h assert.c assert.h loc.c loc.h lex.c lex.h
 
 SUBDIRS := $(wildcard */.)

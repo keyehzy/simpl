@@ -11,7 +11,13 @@ enum Tag {
   Invalid,
 };
 
+typedef enum {
+    operand_number_literal,
+    operand_variable_identifier,
+} operand_kind;
+
 typedef struct OperandNode {
+  operand_kind kind;
   int hash;
 } OperandNode;
 
@@ -59,11 +65,12 @@ typedef struct Node {
   };
 } Node;
 
-Node *new_operand(location);
+Node *new_operand(location, operand_kind);
 Node *new_operator(location, operation, struct Node*, struct Node*);
 Node *new_invalid(void);
 Node *parse(lexer *);
+Node *parse1(lexer *lex, precedence prec);
 Node *parse_head(lexer *);
-Node *parse_rest(lexer *, Node*);
+Node *parse_rest(lexer *, Node*, precedence);
 
 #endif

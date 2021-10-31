@@ -84,6 +84,7 @@ token parse_identifier(stream *s) {
       CASE_NUMBERS
       CASE_CHARACTERS
 	it++;
+      break;
     default:
       goto finish;
     }

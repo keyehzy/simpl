@@ -6,6 +6,7 @@ typedef struct {
   const char *end;
 } location;
 
+location new_loc(const char *, const char*);
 char* as_str(location l);
 
 #endif
