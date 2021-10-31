@@ -44,8 +44,8 @@ typedef enum {
   tk_minus,
   tk_times,
   tk_div,
-  tk_anonymous_identifier_pattern,
-  tk_anonymous_operator_pattern,
+  tk_identifier_pattern,
+  tk_operator_pattern,
   tk_eof,
 } token_type;
 

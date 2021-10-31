@@ -5,49 +5,52 @@
 #include "loc.h"
 #include "lex.h"
 
-enum Tag {
+typedef enum {
   Operand,
   Operator,
   Invalid,
-};
+} Tag;
 
 typedef enum {
-    operand_number_literal,
-    operand_variable_identifier,
+  operand_number_literal,
+  operand_variable_identifier,
+  operand_any,
 } operand_kind;
 
 typedef struct OperandNode {
   operand_kind kind;
-  int hash;
 } OperandNode;
 
 typedef enum {
-    op_none,
-    op_binary_plus,
-    op_binary_minus,
-    op_binary_times,
-    op_binary_div,
-    op_unary_plus,
-    op_unary_minus,
+  op_none,
+  op_binary_plus,
+  op_binary_minus,
+  op_binary_times,
+  op_binary_div,
+  op_unary_plus,
+  op_unary_minus,
+  op_any,
 } op_kind;
 
 typedef enum {
-    prec_none,
-    prec_addsub,
-    prec_multdiv,
-    prec_unary,
+  prec_none,
+  prec_addsub,
+  prec_multdiv,
+  prec_unary,
+  prec_any,
 } precedence;
 
 typedef enum {
-    assoc_none,
-    assoc_left,
-    assoc_right,
+  assoc_none,
+  assoc_left,
+  assoc_right,
+  assoc_any,
 } associativity;
 
 typedef struct {
-    op_kind       kind;
-    precedence    prec;
-    associativity assoc;
+  op_kind kind;
+  precedence prec;
+  associativity assoc;
 } operation;
 
 typedef struct OperatorNode {
@@ -56,12 +59,21 @@ typedef struct OperatorNode {
   struct Node *right;
 } OperatorNode;
 
+typedef struct WildcardNode {
+  operand_kind kind;
+  operation operation;
+  struct Node *left;
+  struct Node *right;
+} WildcardNode;
+
 typedef struct Node {
   location loc;
-  enum Tag kind;
+  Tag kind;
+  unsigned long hash;
   union {
     struct OperandNode operand;
     struct OperatorNode operator;
+    struct WildcardNode wildcard;
   };
 } Node;
 

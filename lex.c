@@ -61,7 +61,7 @@ token_type get_operator_type(int o) {
   case '/':
     return tk_div;
   case '@':
-    return tk_anonymous_operator_pattern;
+    return tk_operator_pattern;
   default:
     UNREACHABLE();
   }
@@ -103,7 +103,7 @@ token parse_anonymous_identifier_pattern(stream *s) {
   const char* end = eat_word(begin + 1);
   s->buffer = end;
   location loc = (location) {.begin = begin, .end = end};
-  return (token) {.type = tk_anonymous_identifier_pattern, .loc = loc};
+  return (token) {.type = tk_identifier_pattern, .loc = loc};
 }
 
 token parse_anonymous_operator_pattern(stream *s) {
