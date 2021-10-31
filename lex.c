@@ -57,7 +57,7 @@ token_type get_operator_type(int o) {
   case '-':
     return tk_minus;
   case '*':
-    return tk_mult;
+    return tk_times;
   case '/':
     return tk_div;
   default:
@@ -84,6 +84,7 @@ token parse_identifier(stream *s) {
       CASE_NUMBERS
       CASE_CHARACTERS
 	it++;
+      break;
     default:
       goto finish;
     }

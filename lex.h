@@ -24,8 +24,8 @@
 #define CASE(num) case num:
 #define CASE_NUMBERS ENUMERATE_NUMBERS(CASE)
 #define CASE_OPERATORS ENUMERATE_OPERATORS(CASE)
-#define CASE_CHARACTERS                                                        \
-    ENUMERATE_CHARACTERS_LOWERCASE(CASE)                                       \
+#define CASE_CHARACTERS				\
+  ENUMERATE_CHARACTERS_LOWERCASE(CASE)		\
     ENUMERATE_CHARACTERS_UPPERCASE(CASE)
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef enum {
   tk_number_literal,
   tk_plus,
   tk_minus,
-  tk_mult,
+  tk_times,
   tk_div,
   tk_eof,
 } token_type;
