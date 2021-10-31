@@ -1,6 +1,7 @@
 #include "tdd/tdd.h"
 
 #include "lex.h"
+#include "simpl.h"
 
 TDD_TEST(simple) {
   TDD_TRUE(1);
@@ -62,6 +63,44 @@ TDD_TEST(lexer) {
       TDD_TRUE(s_is_eof(&s));
     }
   }
+}
+
+TDD_TEST(parser) {
+  {
+    const char* foo = "42";
+    lexer l = l_new(foo);
+    Node *expr = parse(&l);
+    TDD_EQ(expr->kind, Operand);
+  }
+
+  {
+    const char* foo = "1+1";
+    lexer l = l_new(foo);
+    Node *expr = parse(&l);
+    TDD_EQ(expr->kind, Operator);
+    TDD_EQ(expr->operator.left->kind, Operand);
+    TDD_EQ(expr->operator.right->kind, Operand);
+  }
+
+  {
+    const char* foo = "1+1*1";
+    lexer l = l_new(foo);
+    Node *expr = parse(&l);
+    TDD_EQ(expr->kind, Operator);
+    TDD_EQ(expr->operator.left->kind, Operator);
+    TDD_EQ(expr->operator.right->kind, Operand);
+  }
+
+  {
+    const char* foo = "1*1+1";
+    lexer l = l_new(foo);
+    Node *expr = parse(&l);
+    TDD_EQ(expr->kind, Operator);
+    TDD_EQ(expr->operator.left->kind, Operand);
+    TDD_EQ(expr->operator.right->kind, Operand);
+  }
+
+
 
 }
 
@@ -69,6 +108,7 @@ TDD_TEST(lexer) {
 int main(void) {
   TDD_RUN(simple);
   TDD_RUN(lexer);
+  TDD_RUN(parser);
   TDD_FINISH();
   return 0;
 }

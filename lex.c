@@ -57,7 +57,7 @@ token_type get_operator_type(int o) {
   case '-':
     return tk_minus;
   case '*':
-    return tk_mult;
+    return tk_times;
   case '/':
     return tk_div;
   default:

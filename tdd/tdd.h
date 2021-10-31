@@ -35,19 +35,20 @@ static char TDD_error_msg[TDD_MAXNUM][TDD_BUFSIZE];
 #define TDD_CLEANUP()                                                          \
   for (int idx = 0; idx <= TDD_last_error_idx; idx++)                          \
     memset(TDD_error_msg[idx], 0, TDD_BUFSIZE);                                \
-  TDD_last_error_idx = 0;
+  TDD_last_error_idx = 0;						       \
+  TDD_failed_flag = 0;
 
 #define TDD_RUN(name)                                                          \
   TDD_BLOCK(                                                                   \
       TDD_TEST_##name(); if (TDD_failed_flag) {                                \
         TDD_failed_stat += 1;                                                  \
-        TDD_FAILED(TDD_TEST_##name);                                           \
-        TDD_EMIT_ERRORS();                                                     \
-        TDD_CLEANUP();                                                         \
+	TDD_FAILED(TDD_TEST_##name);					       \
+      	TDD_EMIT_ERRORS();						       \
       } else {                                                                 \
         TDD_passed_stat += 1;                                                  \
         TDD_PASSED(TDD_TEST_##name);                                           \
-      })
+      }									       \
+      TDD_CLEANUP();)
 
 #define TDD_FINISH()                                                           \
   fprintf(stderr,                                                              \
