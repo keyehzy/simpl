@@ -73,17 +73,18 @@ Node *parse_identifier_pattern(lexer *lex, Tag context, location context_loc) {
 
   struct PatternAttributes attr = get_pattern_attr(pattern);
 
-  OperandNode wildcard = {0};
-  wildcard.loc = context_loc;
-  wildcard.kind = attr.kind;
-  wildcard.hash = hash(context_loc.begin, context_loc.end);
+  OperandNode operand = {0};
+  operand.loc = context_loc;
+  operand.kind = attr.kind;
+  operand.hash = hash(context_loc.begin, context_loc.end);
 
   Node *node = (Node*) malloc(sizeof(Node));
   *node = (Node) {0};
   node->loc = new_loc(context_loc.begin, pattern.loc.end);
-  node->hash = hash(context_loc.begin, pattern.loc.end);
   node->kind = context;
-  node->operand = wildcard;
+  node->hash = hash(context_loc.begin, pattern.loc.end);
+  node->is_pattern = 1;
+  node->operand = operand;
   l_skip(lex);
   return node;
 }

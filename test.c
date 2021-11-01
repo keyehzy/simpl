@@ -188,11 +188,11 @@ MU_TEST(test_match) {
   }
 
   {
-    const char* pattern = "#y + y# * z#";
+    const char* pattern = "x# + y# * #z";
     lexer plex = l_new(pattern);
     Node *pattern_node = parse(&plex);
 
-    const char* target = "1 + 2 + 3 * 4";
+    const char* target = "1 + 2 * 3 + 4";
     lexer tlex = l_new(target);
     Node *target_node = parse(&tlex);
 
@@ -200,10 +200,53 @@ MU_TEST(test_match) {
   }
 }
 
+MU_TEST(test_canonize_tree) {
+  {
+    const char* expr = "1 + 2";
+    lexer tlex = l_new(expr);
+    Node *tree = parse(&tlex);
+    canonize_tree(tree);
+    mu_assert_int_eq(tree->index, 0);
+    mu_assert_int_eq(LEFT(tree)->index, 1);
+    mu_assert_int_eq(RIGHT(tree)->index, 2);
+  }
+
+  {
+    const char* expr = "2 + 2";
+    lexer tlex = l_new(expr);
+    Node *tree = parse(&tlex);
+    canonize_tree(tree);
+    mu_assert_int_eq(tree->index, 0);
+    mu_assert_int_eq(LEFT(tree)->index, 1);
+    mu_assert_int_eq(RIGHT(tree)->index, 1);
+  }
+
+  {
+    const char* expr = "x# + y#";
+    lexer tlex = l_new(expr);
+    Node *tree = parse(&tlex);
+    canonize_tree(tree);
+    mu_assert_int_eq(tree->index, 0);
+    mu_assert_int_eq(LEFT(tree)->index, 1);
+    mu_assert_int_eq(RIGHT(tree)->index, 2);
+  }
+
+  {
+    const char* expr = "x# + x#";
+    lexer tlex = l_new(expr);
+    Node *tree = parse(&tlex);
+    canonize_tree(tree);
+    mu_assert_int_eq(tree->index, 0);
+    mu_assert_int_eq(LEFT(tree)->index, 1);
+    mu_assert_int_eq(RIGHT(tree)->index, 1);
+  }
+}
+
 MU_TEST_SUITE(test_suite) {
   MU_RUN_TEST(test_lexer);
   MU_RUN_TEST(test_parser);
   MU_RUN_TEST(test_match);
+  MU_RUN_TEST(test_canonize_tree);
 }
 
 int main(void) {

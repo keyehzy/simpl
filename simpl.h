@@ -68,13 +68,16 @@ typedef struct Node {
   location loc;
   Tag kind;
   unsigned long hash;
+  unsigned int is_pattern;
+  short index;
   union {
     struct OperandNode operand;
-    struct OperatorNode operator;};
+    struct OperatorNode operator;
+  };
 } Node;
 
-#define LEFT(x) (x)->operator.left
-#define RIGHT(x) (x)->operator.right
+#define LEFT(x) ((x)->operator.left)
+#define RIGHT(x) ((x)->operator.right)
 
 Node *new_operand(location, operand_kind);
 Node *new_operator(location, operation, struct Node*, struct Node*);

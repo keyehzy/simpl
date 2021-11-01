@@ -5,5 +5,6 @@
 #include <stdbool.h>
 
 bool match_pattern(const Node *, const Node *);
+const Node *canonize_tree(const Node *);
 
 #endif

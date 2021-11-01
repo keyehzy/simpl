@@ -1,15 +1,79 @@
 #include "match.h"
 
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define EMPTY_HASH 5381
 
+bool compare_operand(const Node *pattern, const Node *target);
+
+bool compare_operand_before_indexing(const Node *pattern, const Node *target);
+
 bool match_pattern1(const Node *pattern, const Node *target);
+
+
+#define OPERAND_TABLE_SZ 100
+static const Node* operand_table[OPERAND_TABLE_SZ] = {0};
+static int operand_table_index = 0;
+static int tree_index = 0;		/* hack */
+
+void canonize_tree1(Node *tree) {
+  if(tree->kind == Operand) {
+
+    for(int i = 0; i < operand_table_index; i++) {
+      if(compare_operand_before_indexing(tree, operand_table[i])) {
+	tree->index = operand_table[i]->index;
+	return;	
+      }
+    }
+    
+    tree->index = tree_index++;
+    operand_table[operand_table_index++] = tree;
+   
+  } else if(tree->kind == Operator) {
+    tree->index = tree_index++;
+
+    canonize_tree1(LEFT(tree));
+    canonize_tree1(RIGHT(tree));
+
+/*    if(LEFT(tree)->index > RIGHT(tree)->index) { *//* swap *//*
+      short i = LEFT(tree)->index;
+      LEFT(tree)->index = RIGHT(tree)->index;
+      RIGHT(tree)->index = i;
+    }*/
+  }
+}
+
+const Node* canonize_tree(const Node *tree) {
+  Node* node = (Node*) malloc(sizeof(Node));
+  *node = *tree;
+  operand_table_index = 0;
+  tree_index = 0;
+  memset(operand_table, 0, sizeof(Node*) * OPERAND_TABLE_SZ);
+  canonize_tree1(node);
+  return node;
+}
+
+bool compare_operand_before_indexing(const Node *pattern, const Node *target) {
+  bool compare_kind = (pattern->operand.kind == operand_any) ||
+                      (pattern->operand.kind == target->operand.kind);
+  bool compare_hash = (pattern->operand.hash == EMPTY_HASH)
+                      || (pattern->operand.hash == target->operand.hash);
+  return compare_kind && compare_hash;
+}
 
 bool compare_operand(const Node *pattern, const Node *target) {
   bool compare_kind = (pattern->operand.kind == operand_any) ||
     (pattern->operand.kind == target->operand.kind);
-  bool compare_hash = (pattern->operand.hash == EMPTY_HASH) || /* anonymous or */
-    (pattern->operand.hash == target->operand.hash);
-  return compare_kind && compare_hash;
+
+  if(pattern->is_pattern) {
+    bool compare_index = (pattern->index == target->index);
+    return compare_kind && compare_index;
+  } else {
+    bool compare_hash = (pattern->operand.hash == target->operand.hash);
+    return compare_kind && compare_hash;
+  }
 }
 
 bool compare_operator(const Node *pattern, const Node *target) {
@@ -29,7 +93,7 @@ bool compare_operator(const Node *pattern, const Node *target) {
 bool match_children(const Node *pattern, const Node *target) {
   if ((LEFT(pattern)->kind == Operand && RIGHT(pattern)->kind == Operand) &&
       (LEFT(target)->kind == Operand && RIGHT(target)->kind == Operand)) {
-    return compare_operand(LEFT(pattern), RIGHT(pattern)) == compare_operand(LEFT(target), RIGHT(target));
+    return compare_operand(LEFT(pattern), LEFT(target)) && compare_operand(RIGHT(pattern), RIGHT(target));
   }
   return false;
 }
@@ -56,13 +120,16 @@ bool match_pattern1(const Node *pattern, const Node *target) {
 
 bool match_pattern(const Node *pattern, const Node *target) {
 
-  if(match_pattern1(pattern, target)) {
+  const Node* canonized_pattern = canonize_tree(pattern);
+  const Node* canonized_target = canonize_tree(target);
+
+  if(match_pattern1(canonized_pattern, canonized_target)) {
     return true;
   }
 
-  if(target->kind == Operator) {
-    bool match_left = match_pattern(pattern, target->operator.left);
-    bool match_right = match_pattern(pattern, target->operator.right);
+  if(canonized_target->kind == Operator) {
+    bool match_left = match_pattern(canonized_pattern, canonized_target->operator.left);
+    bool match_right = match_pattern(canonized_pattern, canonized_target->operator.right);
     return (match_left || match_right);				    
   }
   return false;
