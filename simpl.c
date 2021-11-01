@@ -16,6 +16,7 @@ unsigned long hash(const char *begin, const char *end) {
 
 Node *new_operand(location loc, operand_kind kind) {
   OperandNode operand = {0};
+  operand.loc = loc;
   operand.kind = kind;
 
   Node *node = (Node*) malloc(sizeof(Node));
@@ -29,13 +30,14 @@ Node *new_operand(location loc, operand_kind kind) {
 
 Node *new_operator(location loc, operation o, Node *left, Node *right) {
   OperatorNode operator = {0};
+  operator.loc = loc;
   operator.operation = o;
   operator.left = left;
   operator.right = right;
   
   Node *node = (Node*) malloc(sizeof(Node));
   *node = (Node) {0};
-  node->loc = loc;
+  node->loc = new_loc(left->loc.begin, right->loc.end);
   node->hash = hash(loc.begin, loc.end);
   node->kind = Operator;
   node->operator = operator;
@@ -75,14 +77,15 @@ Node *parse_head(lexer *lex) {
     if(l_peek(lex).type == tk_identifier_pattern) {
       token pattern = l_peek(lex);
       struct PatternAttributes attr = get_pattern_attr(Operand, pattern);
-      WildcardNode operand = {0};
+      OperandNode operand = {0};
       operand.kind = attr.kind;
       Node *node = (Node*) malloc(sizeof(Node));
       *node = (Node) {0};
       node->loc = new_loc(operand_location.begin, pattern.loc.end);
       node->hash = hash(operand_location.begin, operand_location.end);
       node->kind = Operand;
-      node->wildcard = operand;
+      node->operand = operand;
+      l_skip(lex);
       return node;
     }
 
@@ -98,14 +101,15 @@ Node *parse_head(lexer *lex) {
   case tk_identifier_pattern: {
     token pattern = next_token;
     struct PatternAttributes attr = get_pattern_attr(Operand, pattern);
-    WildcardNode operand = {0};
+    OperandNode operand = {0};
     operand.kind = attr.kind;
     Node *node = (Node*) malloc(sizeof(Node));
     *node = (Node) {0};
     node->loc = new_loc(pattern.loc.begin, pattern.loc.end);
     node->hash = 0;		/* match any */
     node->kind = Operand;
-    node->wildcard = operand;
+    node->operand = operand;
+    l_skip(lex);
     return node;
   }
 
@@ -153,6 +157,7 @@ Node *parse_rest(lexer *lex, Node *head, precedence prec) {
     case tk_times:
     case tk_div: {
       operation o = lookup_operation(next_token);
+      location op_loc = next_token.loc;
 
     if(prec > o.prec ||
 	   (prec == o.prec && o.assoc == assoc_right))
@@ -161,7 +166,7 @@ Node *parse_rest(lexer *lex, Node *head, precedence prec) {
       l_skip(lex);
       Node *rest = parse1(lex, o.prec);
       ASSERT(rest->kind != Invalid);
-      head = new_operator(new_loc(head->loc.begin, rest->loc.end), o, head, rest);
+      head = new_operator(op_loc, o, head, rest);
       break;
     }
     case tk_identifier:

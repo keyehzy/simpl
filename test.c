@@ -99,7 +99,7 @@ MU_TEST(test_parser) {
     lexer l = l_new(foo);
     Node *expr = parse(&l);
     mu_assert_int_eq(expr->kind, Operand);
-    mu_assert_int_eq(expr->wildcard.kind, operand_any);
+    mu_assert_int_eq(expr->operand.kind, operand_any);
   }
 
   {
@@ -107,7 +107,7 @@ MU_TEST(test_parser) {
     lexer l = l_new(foo);
     Node *expr = parse(&l);
     mu_assert_int_eq(expr->kind, Operand);
-    mu_assert_int_eq(expr->wildcard.kind, operand_any);
+    mu_assert_int_eq(expr->operand.kind, operand_any);
   }
 
   {
@@ -145,6 +145,30 @@ MU_TEST(test_match) {
     Node *pattern_node = parse(&plex);
 
     const char* target = "x";
+    lexer tlex = l_new(target);
+    Node *target_node = parse(&tlex);
+
+    mu_check(match_pattern(pattern_node, target_node));
+  }
+
+  {
+    const char* pattern = "# + 2";
+    lexer plex = l_new(pattern);
+    Node *pattern_node = parse(&plex);
+
+    const char* target = "2 + 2";
+    lexer tlex = l_new(target);
+    Node *target_node = parse(&tlex);
+
+    mu_check(match_pattern(pattern_node, target_node));
+  }
+
+  {
+    const char* pattern = "x#";
+    lexer plex = l_new(pattern);
+    Node *pattern_node = parse(&plex);
+
+    const char* target = "x + x";
     lexer tlex = l_new(target);
     Node *target_node = parse(&tlex);
 

@@ -1,15 +1,15 @@
 #include "match.h"
 
 bool compare_operand(const Node *pattern, const Node *target) {
-  bool compare_kind = (pattern->wildcard.kind == operand_any) ||
-    (pattern->wildcard.kind == target->operand.kind);
+  bool compare_kind = (pattern->operand.kind == operand_any) ||
+    (pattern->operand.kind == target->operand.kind);
   bool compare_hash = (pattern->hash == 0) || /* anonymous or */
     (pattern->hash == target->hash);
   return compare_kind && compare_hash;
 }
 
 bool compare_operator(const Node *pattern, const Node *target) {
-  operation pattern_o = pattern->wildcard.operation;
+  operation pattern_o = pattern->operator.operation;
   operation target_o = target->operator.operation;
   bool compare_op_kind = (pattern_o.kind == op_any) ||
     (pattern_o.kind == target_o.kind);
@@ -35,8 +35,8 @@ bool match_pattern1(const Node *pattern, const Node *target) {
   if((pattern->kind == Operand) && (target->kind == Operand)) {
     return compare_operand(pattern, target);
   } else if(match_condition(pattern, target)) {
-    bool match_left = match_pattern1(pattern->wildcard.left, target->operator.left);
-    bool match_right = match_pattern1(pattern->wildcard.right, target->operator.right);
+    bool match_left = match_pattern1(pattern->operator.left, target->operator.left);
+    bool match_right = match_pattern1(pattern->operator.right, target->operator.right);
     return match_left && match_right;
   }     
   return false;

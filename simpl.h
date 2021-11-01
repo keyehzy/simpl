@@ -18,6 +18,7 @@ typedef enum {
 } operand_kind;
 
 typedef struct OperandNode {
+  location loc;
   operand_kind kind;
 } OperandNode;
 
@@ -54,17 +55,11 @@ typedef struct {
 } operation;
 
 typedef struct OperatorNode {
+  location loc;
   operation operation;
   struct Node *left;
   struct Node *right;
 } OperatorNode;
-
-typedef struct WildcardNode {
-  operand_kind kind;
-  operation operation;
-  struct Node *left;
-  struct Node *right;
-} WildcardNode;
 
 typedef struct Node {
   location loc;
@@ -73,7 +68,6 @@ typedef struct Node {
   union {
     struct OperandNode operand;
     struct OperatorNode operator;
-    struct WildcardNode wildcard;
   };
 } Node;
 
