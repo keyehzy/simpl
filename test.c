@@ -98,7 +98,7 @@ MU_TEST(test_parser) {
     const char* foo = "#";
     lexer l = l_new(foo);
     Node *expr = parse(&l);
-    mu_assert_int_eq(expr->kind, Operand);
+    mu_assert_int_eq(expr->kind, Any);
     mu_assert_int_eq(expr->operand.kind, operand_any);
   }
 
@@ -175,6 +175,29 @@ MU_TEST(test_match) {
     mu_check(match_pattern(pattern_node, target_node));
   }
 
+  {
+    const char* pattern = "x# + y#";
+    lexer plex = l_new(pattern);
+    Node *pattern_node = parse(&plex);
+
+    const char* target = "1 + 2";
+    lexer tlex = l_new(target);
+    Node *target_node = parse(&tlex);
+
+    mu_check(match_pattern(pattern_node, target_node));
+  }
+
+  {
+    const char* pattern = "#y + y# * z#";
+    lexer plex = l_new(pattern);
+    Node *pattern_node = parse(&plex);
+
+    const char* target = "1 + 2 + 3 * 4";
+    lexer tlex = l_new(target);
+    Node *target_node = parse(&tlex);
+
+    mu_check(match_pattern(pattern_node, target_node));
+  }
 }
 
 MU_TEST_SUITE(test_suite) {

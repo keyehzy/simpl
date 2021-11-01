@@ -8,6 +8,7 @@
 typedef enum {
   Operand,
   Operator,
+  Any,
   Invalid,
 } Tag;
 
@@ -20,6 +21,7 @@ typedef enum {
 typedef struct OperandNode {
   location loc;
   operand_kind kind;
+  unsigned long hash;
 } OperandNode;
 
 typedef enum {
@@ -57,6 +59,7 @@ typedef struct {
 typedef struct OperatorNode {
   location loc;
   operation operation;
+  unsigned long hash;
   struct Node *left;
   struct Node *right;
 } OperatorNode;
@@ -67,9 +70,11 @@ typedef struct Node {
   unsigned long hash;
   union {
     struct OperandNode operand;
-    struct OperatorNode operator;
-  };
+    struct OperatorNode operator;};
 } Node;
+
+#define LEFT(x) (x)->operator.left
+#define RIGHT(x) (x)->operator.right
 
 Node *new_operand(location, operand_kind);
 Node *new_operator(location, operation, struct Node*, struct Node*);
@@ -78,5 +83,6 @@ Node *parse(lexer *);
 Node *parse1(lexer *lex, precedence prec);
 Node *parse_head(lexer *);
 Node *parse_rest(lexer *, Node*, precedence);
+unsigned long hash(const char *, const char *);
 
 #endif

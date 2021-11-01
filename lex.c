@@ -60,8 +60,6 @@ token_type get_operator_type(int o) {
     return tk_times;
   case '/':
     return tk_div;
-  case '@':
-    return tk_operator_pattern;
   default:
     UNREACHABLE();
   }
@@ -106,10 +104,6 @@ token parse_anonymous_identifier_pattern(stream *s) {
   return (token) {.type = tk_identifier_pattern, .loc = loc};
 }
 
-token parse_anonymous_operator_pattern(stream *s) {
-  return parse_operator(s);
-}
-
 token next_token(stream *s) {
   skip_ws(s);
   switch(s_peek(s)[0]) {
@@ -121,8 +115,6 @@ token next_token(stream *s) {
     return parse_identifier(s);
   case '#':
     return parse_anonymous_identifier_pattern(s);
-  case '@':
-    return parse_anonymous_operator_pattern(s);
   case '\0':
     return (token) {.type = tk_eof, .loc = {0}};
   default:
