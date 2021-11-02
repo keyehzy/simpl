@@ -81,57 +81,43 @@ MU_TEST(test_lexer) {
 
 MU_TEST(test_parser) {
   {
-    const char* foo = "42";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("42");
     mu_assert_int_eq(expr->kind, Operand);
   }
 
   {
-    const char* foo = "foo";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("foo");
     mu_assert_int_eq(expr->kind, Operand);
   }
 
   {
-    const char* foo = "#";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("#");
     mu_assert_int_eq(expr->kind, Any);
     mu_assert_int_eq(expr->operand.kind, operand_any);
   }
 
   {
-    const char* foo = "foo#";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("foo#");
     mu_assert_int_eq(expr->kind, Operand);
     mu_assert_int_eq(expr->operand.kind, operand_any);
   }
 
   {
-    const char* foo = "1+1";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("1+1");
     mu_assert_int_eq(expr->kind, Operator);
     mu_assert_int_eq(expr->operator.left->kind, Operand);
     mu_assert_int_eq(expr->operator.right->kind, Operand);
   }
 
   {
-    const char* foo = "1+1*1";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("1+1*1");
     mu_assert_int_eq(expr->kind, Operator);
     mu_assert_int_eq(expr->operator.left->kind, Operand);
     mu_assert_int_eq(expr->operator.right->kind, Operator);
   }
 
   {
-    const char* foo = "1*1+1";
-    lexer l = l_new(foo);
-    Node *expr = parse(&l);
+    Node *expr = parse_expression("1*1+1");
     mu_assert_int_eq(expr->kind, Operator);
     mu_assert_int_eq(expr->operator.left->kind, Operator);
     mu_assert_int_eq(expr->operator.right->kind, Operand);
@@ -140,71 +126,39 @@ MU_TEST(test_parser) {
 
 MU_TEST(test_match) {
   {
-    const char* pattern = "#";
-    lexer plex = l_new(pattern);
-    Node *pattern_node = parse(&plex);
-
-    const char* target = "x";
-    lexer tlex = l_new(target);
-    Node *target_node = parse(&tlex);
-
+    Node *pattern_node = parse_expression("#");
+    Node *target_node = parse_expression("x");
     mu_check(match_pattern(pattern_node, target_node));
   }
 
   {
-    const char* pattern = "# + 2";
-    lexer plex = l_new(pattern);
-    Node *pattern_node = parse(&plex);
-
-    const char* target = "2 + 2";
-    lexer tlex = l_new(target);
-    Node *target_node = parse(&tlex);
-
+    Node *pattern_node = parse_expression("# + 2");
+    Node *target_node = parse_expression("2 + 2");
     mu_check(match_pattern(pattern_node, target_node));
   }
 
   {
-    const char* pattern = "x#";
-    lexer plex = l_new(pattern);
-    Node *pattern_node = parse(&plex);
-
-    const char* target = "x + x";
-    lexer tlex = l_new(target);
-    Node *target_node = parse(&tlex);
-
+    Node *pattern_node = parse_expression("x#");
+    Node *target_node = parse_expression("x + x");
     mu_check(match_pattern(pattern_node, target_node));
   }
 
   {
-    const char* pattern = "x# + y#";
-    lexer plex = l_new(pattern);
-    Node *pattern_node = parse(&plex);
-
-    const char* target = "1 + 2";
-    lexer tlex = l_new(target);
-    Node *target_node = parse(&tlex);
-
+    Node *pattern_node = parse_expression("x# + y#");
+    Node *target_node = parse_expression("1 + 2");
     mu_check(match_pattern(pattern_node, target_node));
   }
 
   {
-    const char* pattern = "x# + y# * #z";
-    lexer plex = l_new(pattern);
-    Node *pattern_node = parse(&plex);
-
-    const char* target = "1 + 2 * 3 + 4";
-    lexer tlex = l_new(target);
-    Node *target_node = parse(&tlex);
-
+    Node *pattern_node = parse_expression("x# + y# * #z");
+    Node *target_node = parse_expression("1 + 2 * 3 + 4");
     mu_check(match_pattern(pattern_node, target_node));
   }
 }
 
 MU_TEST(test_canonize_tree) {
   {
-    const char* expr = "1 + 2";
-    lexer tlex = l_new(expr);
-    Node *tree = parse(&tlex);
+    Node *tree = parse_expression("1 + 2");
     canonize_tree(tree);
     mu_assert_int_eq(tree->index, 0);
     mu_assert_int_eq(LEFT(tree)->index, 1);
@@ -212,9 +166,7 @@ MU_TEST(test_canonize_tree) {
   }
 
   {
-    const char* expr = "2 + 2";
-    lexer tlex = l_new(expr);
-    Node *tree = parse(&tlex);
+    Node *tree = parse_expression("2 + 2");
     canonize_tree(tree);
     mu_assert_int_eq(tree->index, 0);
     mu_assert_int_eq(LEFT(tree)->index, 1);
@@ -222,9 +174,7 @@ MU_TEST(test_canonize_tree) {
   }
 
   {
-    const char* expr = "x# + y#";
-    lexer tlex = l_new(expr);
-    Node *tree = parse(&tlex);
+    Node *tree = parse_expression("x# + y#");
     canonize_tree(tree);
     mu_assert_int_eq(tree->index, 0);
     mu_assert_int_eq(LEFT(tree)->index, 1);
@@ -232,9 +182,7 @@ MU_TEST(test_canonize_tree) {
   }
 
   {
-    const char* expr = "x# + x#";
-    lexer tlex = l_new(expr);
-    Node *tree = parse(&tlex);
+    Node *tree = parse_expression("x# + x#");
     canonize_tree(tree);
     mu_assert_int_eq(tree->index, 0);
     mu_assert_int_eq(LEFT(tree)->index, 1);

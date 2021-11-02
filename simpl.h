@@ -82,6 +82,7 @@ typedef struct Node {
 Node *new_operand(location, operand_kind);
 Node *new_operator(location, operation, struct Node*, struct Node*);
 Node *new_invalid(void);
+Node *parse_expression(const char*);
 Node *parse(lexer *);
 Node *parse1(lexer *lex, precedence prec);
 Node *parse_head(lexer *);

@@ -192,3 +192,8 @@ Node *parse(lexer *lex) {
   Node *head = parse_head(lex);
   return parse_rest(lex, head, (precedence) {0});
 }
+
+Node *parse_expression(const char* expr) {
+  lexer lex = l_new(expr);
+  return parse(&lex);
+}
