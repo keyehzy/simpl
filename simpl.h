@@ -5,6 +5,8 @@
 #include "loc.h"
 #include "lex.h"
 
+#include <stdbool.h>
+
 typedef enum {
   Operand,
   Operator,
@@ -88,5 +90,6 @@ Node *parse1(lexer *lex, precedence prec);
 Node *parse_head(lexer *);
 Node *parse_rest(lexer *, Node*, precedence);
 unsigned long hash(const char *, const char *);
+bool stricly_equal(const Node *, const Node *);
 
 #endif

@@ -154,6 +154,24 @@ MU_TEST(test_match) {
     Node *target_node = parse_expression("1 + 2 * 3 + 4");
     mu_check(match_pattern(pattern_node, target_node));
   }
+
+  {
+    Node *pattern_node = parse_expression("x# + y#");
+    Node *target_node = parse_expression("1 + 2 + 3 + 4");
+    match_collector collector = match_and_collect_pattern(pattern_node, target_node);
+    mu_assert_int_eq(collector.size, 1);
+    mu_check(stricly_equal(collector.matches[0], parse_expression("1 + 2")));
+  }
+
+  {
+    Node *pattern_node = parse_expression("x# * y#");
+    Node *target_node = parse_expression("1 * 2 + 3 * 4");
+    match_collector collector = match_and_collect_pattern(pattern_node, target_node);
+    mu_assert_int_eq(collector.size, 2);
+    mu_check(stricly_equal(collector.matches[0], parse_expression("1 * 2")));
+    mu_check(stricly_equal(collector.matches[1], parse_expression("3 * 4")));
+  }
+
 }
 
 MU_TEST(test_canonize_tree) {

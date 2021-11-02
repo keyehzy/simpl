@@ -1,6 +1,7 @@
 #include "simpl.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 unsigned long hash(const char *begin, const char *end) {
   unsigned long hash = 5381;
@@ -13,6 +14,24 @@ unsigned long hash(const char *begin, const char *end) {
 
   return hash;
 }
+
+bool stricly_equal(const Node *A, const Node *B) {
+  if((A->hash != B->hash) || (A->kind != B->kind) || (A->is_pattern != B->is_pattern)) {
+    return false;
+  }
+
+  if(A->kind == Operand && B->kind == Operand) {
+    if((A->operand.hash != B->operand.hash) || (A->operand.kind != B->operand.kind))
+      return false;
+  }
+
+  if(A->kind == Operator && B->kind == Operator) {
+    return stricly_equal(A->operator.left, B->operator.left) && stricly_equal(A->operator.right, B->operator.right);
+  }
+
+  return true;
+}
+
 
 Node *new_operand(location loc, operand_kind kind) {
   unsigned long operand_hash = hash(loc.begin, loc.end);
